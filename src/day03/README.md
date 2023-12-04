@@ -4,7 +4,7 @@
 
 Task description: [link](https://adventofcode.com/2023/day/3)
 
-## Notes
+## Notes Pt1
 
 ...
 
@@ -17,6 +17,11 @@ Task description: [link](https://adventofcode.com/2023/day/3)
 `531595` - Not right
 
 `395196` - Not right
+
+## Notes Pt2
+
+`52076151` - Answer to low
+`59356663` - Answer to low
 
 ## Problem
 

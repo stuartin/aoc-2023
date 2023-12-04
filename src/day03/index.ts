@@ -1,5 +1,27 @@
 import run from "aocrunner";
 
+/** index based off biggerbox layout **/
+function isHitIdx(i: number) {
+  return i === 2 || i === 3 || i === 4;
+}
+
+type Symbol = {
+  id: string; // {lineIdx}-{symbolIdx}
+  lineIdx: number;
+  char: string;
+  charIdx: number;
+  validIdx: [number, number, number];
+  grid: string[];
+  numbersInGrid: SurroundingNumber[];
+};
+
+type SurroundingNumber = {
+  chars: string;
+  idxs: number[];
+};
+
+const SYMBOL_REGEX = /[!@#$%^&*/+=(),-]/g;
+
 const parseInput = (rawInput: string) => {
   const lines = rawInput.split("\n");
 
@@ -12,6 +34,8 @@ const parseInput = (rawInput: string) => {
           char,
           charIdx,
           validIdx: [charIdx - 1, charIdx, charIdx + 1],
+          numbersInGrid: [],
+          grid: [],
         });
       }
       return acc;
@@ -31,10 +55,10 @@ const parseInput = (rawInput: string) => {
 
       const grid = [topRow, midRow, bottomRow];
       const gridDebug = `
-    ${prevLineIdx}: ${topRow}
-    ${lineIdx}: ${midRow}
-    ${nextLineIdx}: ${bottomRow}
-    `;
+        ${prevLineIdx}: ${topRow}
+        ${lineIdx}: ${midRow}
+        ${nextLineIdx}: ${bottomRow}
+      `;
 
       // console.log("\n\n", symbol);
       // console.log(gridDebug);
@@ -46,39 +70,13 @@ const parseInput = (rawInput: string) => {
         charIdx,
         validIdx,
         grid,
-      };
+        numbersInGrid: [],
+      } as Symbol;
     },
   );
-  return symbolsWithGrid;
-};
 
-/** index based off biggerbox layout **/
-function isHitIdx(i: number) {
-  return i === 2 || i === 3 || i === 4;
-}
-
-type Symbol = {
-  id: string; // {lineIdx}-{symbolIdx}
-  lineIdx: number;
-  char: string;
-  charIdx: number;
-  validIdx: [number, number, number];
-  grid?: [number, number, number];
-};
-
-type SurroundingNumber = {
-  chars: string;
-  idxs: number[];
-};
-
-const SYMBOL_REGEX = /[!@#$%^&*/+=(),-]/g;
-
-const part1 = (rawInput: string) => {
-  const input = parseInput(rawInput);
-
-  let validChars: SurroundingNumber[] = [];
-
-  input.forEach(({ grid }, i) => {
+  symbolsWithGrid.forEach(({ grid }, i) => {
+    let validChars: SurroundingNumber[] = [];
     // console.log("\n\ncheck grid:");
     // console.log(grid.join("\n"));
 
@@ -103,14 +101,24 @@ const part1 = (rawInput: string) => {
         { chars: "", idxs: [] } as SurroundingNumber,
       );
     });
-  });
 
-  const total = validChars.reduce((total, number) => {
-    if (number.idxs.some((idx) => isHitIdx(idx))) {
-      total += parseInt(number.chars);
-    }
-    return total;
-  }, 0);
+    symbolsWithGrid[i].numbersInGrid = validChars;
+  });
+  return symbolsWithGrid;
+};
+
+const part1 = (rawInput: string) => {
+  const symbols = parseInput(rawInput);
+
+  const total = symbols
+    .map((symbol) => symbol.numbersInGrid)
+    .flat()
+    .reduce((total, number) => {
+      if (number.idxs.some((idx) => isHitIdx(idx))) {
+        total += parseInt(number.chars);
+      }
+      return total;
+    }, 0);
 
   // console.log("validChars", validChars);
 
@@ -118,15 +126,32 @@ const part1 = (rawInput: string) => {
 };
 
 const part2 = (rawInput: string) => {
-  const input = parseInput(rawInput);
+  const symbols = parseInput(rawInput);
 
-  input
+  const total = symbols
     .filter(({ char }) => char === "*")
     .map((symbol) => {
-      console.log(symbol);
-    });
+      console.log("\n\ncheck grid:");
+      console.log(symbol.grid.join("\n"));
+      const validNumbers = symbol.numbersInGrid.filter((numberInGrid) =>
+        numberInGrid.idxs.some((idx) => isHitIdx(idx)),
+      );
 
-  return;
+      let symbolTotal = 0;
+      if (validNumbers.length === 2) {
+        console.log(validNumbers);
+
+        symbolTotal =
+          parseInt(validNumbers[0].chars) * parseInt(validNumbers[1].chars);
+        console.log(symbolTotal);
+      }
+      return symbolTotal;
+    })
+    .reduce((total, curr) => (total += curr));
+
+  console.log(total);
+
+  return total;
 };
 
 run({
@@ -148,6 +173,4 @@ run({
     ],
     solution: part2,
   },
-  trimTestInputs: true,
-  onlyTests: false,
 });

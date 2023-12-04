@@ -55,13 +55,16 @@
           "531595",
           "395196"
         ],
-        "time": 12.2695
+        "time": 14.3788
       },
       "part2": {
-        "solved": false,
-        "result": null,
-        "attempts": [],
-        "time": null
+        "solved": true,
+        "result": "83279367",
+        "attempts": [
+          "52076151",
+          "59356663"
+        ],
+        "time": 571.7965
       }
     },
     {
