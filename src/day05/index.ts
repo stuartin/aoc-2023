@@ -6,45 +6,48 @@ type Input = {
 };
 
 type SourceOrDestination = {
-  [K in SrcOrDstName]: number[];
+  [K in SrcOrDstName]: {
+    start: number;
+    end: number;
+  };
 };
 
 type SrcOrDstName = "src" | "dst";
 
 const parseInput = (rawInput: string) => {
-  rawInput = `seeds: 79 14 55 13
+  // rawInput = `seeds: 79 14 55 13
 
-  seed-to-soil map:
-  50 98 2
-  52 50 48
-  
-  soil-to-fertilizer map:
-  0 15 37
-  37 52 2
-  39 0 15
-  
-  fertilizer-to-water map:
-  49 53 8
-  0 11 42
-  42 0 7
-  57 7 4
-  
-  water-to-light map:
-  88 18 7
-  18 25 70
-  
-  light-to-temperature map:
-  45 77 23
-  81 45 19
-  68 64 13
-  
-  temperature-to-humidity map:
-  0 69 1
-  1 0 69
-  
-  humidity-to-location map:
-  60 56 37
-  56 93 4`;
+  // seed-to-soil map:
+  // 50 98 2
+  // 52 50 48
+
+  // soil-to-fertilizer map:
+  // 0 15 37
+  // 37 52 2
+  // 39 0 15
+
+  // fertilizer-to-water map:
+  // 49 53 8
+  // 0 11 42
+  // 42 0 7
+  // 57 7 4
+
+  // water-to-light map:
+  // 88 18 7
+  // 18 25 70
+
+  // light-to-temperature map:
+  // 45 77 23
+  // 81 45 19
+  // 68 64 13
+
+  // temperature-to-humidity map:
+  // 0 69 1
+  // 1 0 69
+
+  // humidity-to-location map:
+  // 60 56 37
+  // 56 93 4`;
 
   let seeds: number[] = [];
   let map = new Map<string, SourceOrDestination[]>();
@@ -88,17 +91,27 @@ const parseInput = (rawInput: string) => {
       if (ranges && ranges.length === 3) {
         const [dstRangeStart, srcRangeStart, length] = ranges;
 
-        const srcRange = Array.from({ length: length }).map((_, i) => {
-          return srcRangeStart + i;
-        });
+        const src = {
+          start: srcRangeStart,
+          end: srcRangeStart + length - 1,
+        };
 
-        const dstRange = Array.from({ length: length }).map((_, i) => {
-          return dstRangeStart + i;
-        });
+        const dst = {
+          start: dstRangeStart,
+          end: dstRangeStart + length - 1,
+        };
+
+        // const srcRange = Array.from({ length: length }).map((_, i) => {
+        //   return srcRangeStart + i;
+        // });
+
+        // const dstRange = Array.from({ length: length }).map((_, i) => {
+        //   return dstRangeStart + i;
+        // });
 
         // console.log({ destinationRangeStart, sourceRangeStart, length });
         // console.log({ dstRange, srcRange });
-        _maps.push({ src: srcRange, dst: dstRange });
+        _maps.push({ src, dst });
       }
     });
 
@@ -118,19 +131,23 @@ function getFinalDestination(map: SourceOrDestination[], seed: number): number {
   // console.log({ sources, destinations });
 
   let srcIdxMap = sources.flatMap((source, srcLineIdx) => {
-    const srcIdx = source.indexOf(seed);
-    if (srcIdx === -1) return [];
-
-    return {
-      srcLineIdx,
-      srcIdx,
-    };
+    // console.log({ source, srcLineIdx });
+    if (seed >= source.start && seed <= source.end) {
+      const startDelta = seed - source.start;
+      // console.log("match", source);
+      // console.log("startDelta", startDelta);
+      return {
+        srcLineIdx,
+        startDelta,
+      };
+    }
+    return [];
   })[0]; // This should always only find 1 or none
-  // console.log(srcIdxMap);
 
   if (srcIdxMap) {
-    const { srcLineIdx, srcIdx } = srcIdxMap;
-    finalSeedDestination = destinations[srcLineIdx][srcIdx];
+    // console.log(srcIdxMap);
+    const { srcLineIdx, startDelta } = srcIdxMap;
+    finalSeedDestination = destinations[srcLineIdx].start + startDelta;
   }
 
   console.log("startToFinal", seed, "-", finalSeedDestination);
@@ -144,22 +161,23 @@ const part1 = (rawInput: string) => {
 
   let startingNumbers = input.seeds;
 
-  startingNumbers.forEach((seed) => {
+  const locations = startingNumbers.map((seed) => {
     console.log("seed", seed);
 
-    let currSeed: number | undefined = undefined;
+    let currSeed: number = seed;
     input.map.forEach((map, key) => {
-      if (!currSeed) currSeed = seed;
-
       console.log("mapping", key);
 
       const newSeed = getFinalDestination(map, currSeed);
-      console.log(newSeed);
       currSeed = newSeed;
     });
+    return currSeed;
   });
 
-  return;
+  console.log(locations);
+  const smallestLocation = Math.min(...locations);
+
+  return smallestLocation;
 };
 
 const part2 = (rawInput: string) => {
