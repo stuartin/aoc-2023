@@ -56,7 +56,7 @@ const parseInput = (rawInput: string) => {
 
   rawInput
     .split("\n")
-    .slice(0, 5)
+    // .slice(0, 5)
     .forEach((line) => {
       if (!line) return;
 
@@ -108,45 +108,54 @@ const parseInput = (rawInput: string) => {
   } as Input;
 };
 
+function getFinalDestination(map: SourceOrDestination[], seed: number): number {
+  // console.log("seed", seed);
+  let finalSeedDestination = seed;
+
+  const sources = map.map((t) => t.src);
+  const destinations = map.map((t) => t.dst);
+
+  // console.log({ sources, destinations });
+
+  let srcIdxMap = sources.flatMap((source, srcLineIdx) => {
+    const srcIdx = source.indexOf(seed);
+    if (srcIdx === -1) return [];
+
+    return {
+      srcLineIdx,
+      srcIdx,
+    };
+  })[0]; // This should always only find 1 or none
+  // console.log(srcIdxMap);
+
+  if (srcIdxMap) {
+    const { srcLineIdx, srcIdx } = srcIdxMap;
+    finalSeedDestination = destinations[srcLineIdx][srcIdx];
+  }
+
+  console.log("startToFinal", seed, "-", finalSeedDestination);
+  return finalSeedDestination;
+}
+
 const part1 = (rawInput: string) => {
   const input = parseInput(rawInput);
 
   // console.log(input);
 
   let startingNumbers = input.seeds;
-  input.map.forEach((map, key) => {
-    if (key !== "seed-soil") return;
 
-    console.log(key);
-    // if(i !== 0) return
-    // console.log("\n\nmap", map);
+  startingNumbers.forEach((seed) => {
+    console.log("seed", seed);
 
-    startingNumbers.forEach((seed) => {
-      console.log("seed", seed);
-      let finalSeedDestination = seed;
+    let currSeed: number | undefined = undefined;
+    input.map.forEach((map, key) => {
+      if (!currSeed) currSeed = seed;
 
-      const sources = map.map((t) => t.src);
-      const destinations = map.map((t) => t.dst);
+      console.log("mapping", key);
 
-      console.log({ sources, destinations });
-
-      let srcIdxMap = sources.flatMap((source, srcLineIdx) => {
-        const srcIdx = source.indexOf(seed);
-        if (srcIdx === -1) return [];
-
-        return {
-          srcLineIdx,
-          srcIdx,
-        };
-      })[0]; // This should always only find 1 or none
-      console.log(srcIdxMap);
-
-      if (srcIdxMap) {
-        const { srcLineIdx, srcIdx } = srcIdxMap;
-        finalSeedDestination = destinations[srcLineIdx][srcIdx];
-      }
-
-      console.log("startToFinal", seed, "-", finalSeedDestination);
+      const newSeed = getFinalDestination(map, currSeed);
+      console.log(newSeed);
+      currSeed = newSeed;
     });
   });
 
