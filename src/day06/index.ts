@@ -26,6 +26,29 @@ const parseInput = (rawInput: string) => {
   return { times, distances };
 };
 
+const parseInputTwo = (rawInput: string) => {
+  // rawInput = `Time:      7  15   30
+  // Distance:  9  40  200`;
+
+  let time: number = 0;
+  let distance: number = 0;
+  rawInput.split("\n").forEach((line) => {
+    const lineSplit = line.split(":");
+
+    let number = lineSplit[1].replace(/[^\d]/g, "");
+
+    if (lineSplit[0].includes("Time")) {
+      time = parseInt(number);
+    }
+
+    if (lineSplit[0].includes("Distance")) {
+      distance = parseInt(number);
+    }
+  });
+
+  return { time, distance };
+};
+
 function getTravelTime(totalTime: number): number[][] {
   const options = Array.from({ length: totalTime + 1 }).reduce(
     (output: number[][], _, time) => {
@@ -49,18 +72,12 @@ function getTravelTime(totalTime: number): number[][] {
 const part1 = (rawInput: string) => {
   const input = parseInput(rawInput);
 
-  console.log(input);
-
   const multiplied = input.times.reduce((total, time, i) => {
     const travelTimes = getTravelTime(time);
-    // console.log(travelTimes);
 
     const winners = travelTimes.filter(([time, distance]) => {
-      // console.log({ time, distance, i });
-      // console.log("target", input.distances[i]);
       return distance > input.distances[i];
     });
-    console.log(winners.length);
 
     return total * winners.length;
   }, 1);
@@ -69,9 +86,15 @@ const part1 = (rawInput: string) => {
 };
 
 const part2 = (rawInput: string) => {
-  const input = parseInput(rawInput);
+  const { time, distance } = parseInputTwo(rawInput);
 
-  return;
+  const travelTimes = getTravelTime(time);
+
+  const winners = travelTimes.filter(([t, d]) => {
+    return d > distance;
+  });
+
+  return winners.length;
 };
 
 run({
