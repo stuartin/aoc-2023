@@ -1,5 +1,5 @@
 import run from "aocrunner";
-const CardRank = {
+const CardRankOne = {
   A: 13,
   K: 12,
   Q: 11,
@@ -13,6 +13,22 @@ const CardRank = {
   "4": 3,
   "3": 2,
   "2": 1,
+};
+
+const CardRankTwo = {
+  A: 13,
+  K: 12,
+  Q: 11,
+  T: 10,
+  "9": 9,
+  "8": 8,
+  "7": 7,
+  "6": 6,
+  "5": 5,
+  "4": 4,
+  "3": 3,
+  "2": 2,
+  J: 1,
 };
 
 type Card =
@@ -38,7 +54,7 @@ type PartOne = {
   win: ReturnType<typeof getWinType>;
 };
 
-function getWinType(hand: Hand) {
+function _getSortedCountOfCards(hand: Hand) {
   let counts: Partial<Record<Card, number>> = {};
   for (let i = 0; i < hand.length; i++) {
     const card = hand[i];
@@ -50,12 +66,20 @@ function getWinType(hand: Hand) {
   const sorted = Object.entries(counts).sort((a, b) => {
     return a[1] - b[1];
   });
+  return sorted;
+}
+
+function getWinType(hand: Hand, includeJ: boolean = true) {
+  const sorted = _getSortedCountOfCards(hand).filter(([card, _]) => {
+    if (includeJ) return true;
+
+    return card !== "J";
+  });
 
   // console.log("getWinType", sorted);
 
   // console.log(sorted);
 
-  let finalResult: number | undefined = undefined;
   let triple: boolean = false;
   let firstPair: boolean = false;
   let secondPair: boolean = false;
@@ -117,7 +141,89 @@ function getWinType(hand: Hand) {
   return -1;
 }
 
-function getFinalRank(pOne: PartOne, pTwo: PartOne) {
+function getJokerWinType(hand: Hand, winType: number) {
+  // console.log({ hand, winType });
+
+  if (!hand.includes("J")) return winType;
+
+  const sorted = _getSortedCountOfCards(hand);
+  const [_, jokers] = sorted.find((card) => card[0] === "J")!;
+
+  // four of a kind goes to 5
+  if (winType === 5) {
+    return winType + 1;
+  }
+
+  // full house can go to 4/5 of a kind
+  if (winType === 4) {
+    if (jokers === 2) {
+      return winType + 2;
+    }
+    if (jokers === 1) {
+      return winType + 1;
+    }
+  }
+
+  // three of a kind goes to 4/5 of a kind
+  if (winType === 3) {
+    if (jokers === 2) {
+      return winType + 3;
+    }
+    if (jokers === 1) {
+      return winType + 2;
+    }
+  }
+
+  // two pair goes to fullhouse
+  if (winType === 2) {
+    if (jokers === 1) {
+      return winType + 2;
+    }
+  }
+
+  // one pair goes to 3/4/5 of a kind
+  if (winType === 1) {
+    if (jokers === 3) {
+      return winType + 5;
+    }
+    if (jokers === 2) {
+      return winType + 4;
+    }
+    if (jokers === 1) {
+      return winType + 2;
+    }
+  }
+
+  if (winType === 0) {
+    // always makes 5 of a kind
+    if (jokers === 5 || jokers === 4) {
+      return 6;
+    }
+
+    // 3 makes 4 of a kind
+    if (jokers === 3) {
+      return 5;
+    }
+
+    // 2 makes 3 of a kind
+    if (jokers === 2) {
+      return 3;
+    }
+
+    // 1 makes 2 of a kind
+    if (jokers === 1) {
+      return 1;
+    }
+  }
+
+  return winType;
+}
+
+function getFinalRank(
+  pOne: PartOne,
+  pTwo: PartOne,
+  cardRank: typeof CardRankOne,
+) {
   const handOne = pOne.hand;
   const handTwo = pTwo.hand;
 
@@ -134,8 +240,8 @@ function getFinalRank(pOne: PartOne, pTwo: PartOne) {
 
   for (let i = 0; i < handOne.length; i++) {
     if (handOne[i] !== handTwo[i]) {
-      const rankOne = CardRank[handOne[i]];
-      const rankTwo = CardRank[handTwo[i]];
+      const rankOne = cardRank[handOne[i]];
+      const rankTwo = cardRank[handTwo[i]];
       // console.log({
       //   ...{ cardOne: handOne[i] },
       //   rankOne,
@@ -163,6 +269,28 @@ const parseInput = (rawInput: string) => {
   // AAAAA 5
   // KKKAA 100
   // QQQJA 483`;
+  // rawInput = `32T3K 765
+  // T55J5 684
+  // KK677 28
+  // KTJJT 220
+  // QQQJA 483`;
+  // rawInput = `J242Q 100
+  // J2623 100
+  // J2792 100
+  // J2T2T 100
+  // J3362 100
+  // J34KK 100
+  // J447Q 100
+  // J4KAK 100
+  // J5285 100
+  // J66K7 100
+  // J6T2T 100
+  // J747K 100
+  // J7579 100
+  // J8443 100
+  // J8Q9Q 100
+  // J93Q9 100
+  // J9Q92 100`;
 
   const hands = rawInput
     .split("\n")
@@ -181,7 +309,7 @@ const parseInput = (rawInput: string) => {
 const part1 = (rawInput: string) => {
   const hands = parseInput(rawInput);
 
-  console.log("hands", hands);
+  // console.log("hands", hands);
   const wins = hands
     .map(({ hand, bid }) => {
       return {
@@ -190,10 +318,40 @@ const part1 = (rawInput: string) => {
         hand,
       } as PartOne;
     })
-    .sort((a, b) => getFinalRank(a, b));
+    .sort((a, b) => getFinalRank(a, b, CardRankOne));
 
   const json = JSON.stringify(wins);
-  console.log(json);
+  // console.log(json);
+
+  const totals = wins.reduce((total, curr, i) => {
+    return total + curr.bid * (i + 1);
+  }, 0);
+
+  // console.log({ totals });
+  // wins.forEach((win) => {});
+  return totals;
+};
+
+const part2 = (rawInput: string) => {
+  const hands = parseInput(rawInput);
+
+  // console.log("hands", hands);
+  const wins = hands
+    .map(({ hand, bid }) => {
+      const initialWinType = getWinType(hand, false);
+      const win = getJokerWinType(hand, initialWinType);
+      return {
+        win,
+        bid,
+        hand,
+      } as PartOne;
+    })
+    .sort((a, b) => getFinalRank(a, b, CardRankTwo));
+
+  // console.log(JSON.stringify(wins));
+
+  // const json = JSON.stringify(wins);
+  // console.log(json);
 
   const totals = wins.reduce((total, curr, i) => {
     return total + curr.bid * (i + 1);
@@ -202,12 +360,6 @@ const part1 = (rawInput: string) => {
   console.log({ totals });
   // wins.forEach((win) => {});
   return totals;
-};
-
-const part2 = (rawInput: string) => {
-  const input = parseInput(rawInput);
-
-  return;
 };
 
 run({

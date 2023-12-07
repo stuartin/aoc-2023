@@ -120,13 +120,17 @@
           "259505730",
           "240915388"
         ],
-        "time": 51.6418
+        "time": 7.7127
       },
       "part2": {
-        "solved": false,
-        "result": null,
-        "attempts": [],
-        "time": null
+        "solved": true,
+        "result": "243101568",
+        "attempts": [
+          "246250524",
+          "243962320",
+          "244188196"
+        ],
+        "time": 6.8774
       }
     },
     {
