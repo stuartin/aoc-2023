@@ -106,11 +106,11 @@ const part2 = (rawInput: string) => {
     }
 
     stepCounts.push(currStepCount);
-    currStepCount = 0;
   });
 
   // console.log(stepCounts);
   const lowestCommonDenominator = lcm(stepCounts);
+  // console.log(lowestCommonDenominator);
   return lowestCommonDenominator;
 };
 
