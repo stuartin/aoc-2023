@@ -56,22 +56,6 @@ const parseInput = (rawInput: string) => {
   };
 };
 
-function smallestCommons(arr: number[]) {
-  const min = Math.min(...arr),
-    max = Math.max(...arr),
-    range = Array.from({ length: max - min + 1 });
-
-  let current = max;
-
-  while (true) {
-    const isFullyDivisible = range.every((n) => current % n === 0);
-    if (isFullyDivisible) {
-      return current;
-    }
-    current++;
-  }
-}
-
 const part1 = (rawInput: string) => {
   return;
   const { steps, destinations } = parseInput(rawInput);
@@ -106,41 +90,27 @@ const part2 = (rawInput: string) => {
   const stepCounts: number[] = [];
 
   startPositions.forEach((currPosition) => {
-    let finalStepCount = 0;
-
     let currSteps = steps;
-    let stepCount = 0;
-    let endPosition: string | undefined = undefined;
-    let finished = false;
+    let currStepCount = 0;
 
-    while (!finished) {
-      while (stepCount === 0 || !currPosition.endsWith("Z")) {
-        // console.log({ currPosition });
-        // console.log(currSteps[0]);
-        stepCount += 1;
-        if (currSteps[0] === "L") {
-          currPosition = destinations[currPosition][0];
-        } else {
-          currPosition = destinations[currPosition][1];
-        }
-        currSteps.push(currSteps.splice(0, 1)[0]);
+    while (!currPosition.endsWith("Z")) {
+      // console.log({ currPosition });
+      // console.log(currSteps[0]);
+      currStepCount += 1;
+      if (currSteps[0] === "L") {
+        currPosition = destinations[currPosition][0];
+      } else {
+        currPosition = destinations[currPosition][1];
       }
-
-      if (!endPosition) {
-        endPosition = currPosition;
-        finalStepCount = stepCount;
-        stepCount = 0;
-        // console.log({ endPosition });
-        finished = true;
-      }
+      currSteps.push(currSteps.splice(0, 1)[0]);
     }
 
-    stepCounts.push(finalStepCount);
+    stepCounts.push(currStepCount);
+    currStepCount = 0;
   });
 
   // console.log(stepCounts);
   const lowestCommonDenominator = lcm(stepCounts);
-
   return lowestCommonDenominator;
 };
 
