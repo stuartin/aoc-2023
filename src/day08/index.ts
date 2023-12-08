@@ -1,4 +1,5 @@
 import run from "aocrunner";
+import lcm from "compute-lcm";
 
 type Step = "L" | "R";
 
@@ -17,6 +18,16 @@ const parseInput = (rawInput: string) => {
   // AAA = (BBB, BBB)
   // BBB = (AAA, ZZZ)
   // ZZZ = (ZZZ, ZZZ)`;
+  // rawInput = `LR
+
+  // 11A = (11B, XXX)
+  // 11B = (XXX, 11Z)
+  // 11Z = (11B, XXX)
+  // 22A = (22B, XXX)
+  // 22B = (22C, 22C)
+  // 22C = (22Z, 22Z)
+  // 22Z = (22B, 22B)
+  // XXX = (XXX, XXX)`;
 
   let steps: Step[] = [];
   let destinations: Record<string, [string, string]> = {};
@@ -45,7 +56,24 @@ const parseInput = (rawInput: string) => {
   };
 };
 
+function smallestCommons(arr: number[]) {
+  const min = Math.min(...arr),
+    max = Math.max(...arr),
+    range = Array.from({ length: max - min + 1 });
+
+  let current = max;
+
+  while (true) {
+    const isFullyDivisible = range.every((n) => current % n === 0);
+    if (isFullyDivisible) {
+      return current;
+    }
+    current++;
+  }
+}
+
 const part1 = (rawInput: string) => {
+  return;
   const { steps, destinations } = parseInput(rawInput);
 
   let stepCount = 0;
@@ -68,9 +96,52 @@ const part1 = (rawInput: string) => {
 };
 
 const part2 = (rawInput: string) => {
-  const input = parseInput(rawInput);
+  const { steps, destinations } = parseInput(rawInput);
 
-  return;
+  const startPositions = Object.keys(destinations).filter((key) =>
+    key.endsWith("A"),
+  );
+  console.log({ startPositions });
+
+  const stepCounts: number[] = [];
+
+  startPositions.forEach((currPosition) => {
+    let finalStepCount = 0;
+
+    let currSteps = steps;
+    let stepCount = 0;
+    let endPosition: string | undefined = undefined;
+    let finished = false;
+
+    while (!finished) {
+      while (stepCount === 0 || !currPosition.endsWith("Z")) {
+        // console.log({ currPosition });
+        // console.log(currSteps[0]);
+        stepCount += 1;
+        if (currSteps[0] === "L") {
+          currPosition = destinations[currPosition][0];
+        } else {
+          currPosition = destinations[currPosition][1];
+        }
+        currSteps.push(currSteps.splice(0, 1)[0]);
+      }
+
+      if (!endPosition) {
+        endPosition = currPosition;
+        finalStepCount = stepCount;
+        stepCount = 0;
+        // console.log({ endPosition });
+        finished = true;
+      }
+    }
+
+    stepCounts.push(finalStepCount);
+  });
+
+  // console.log(stepCounts);
+  const lowestCommonDenominator = lcm(stepCounts);
+
+  return lowestCommonDenominator;
 };
 
 run({
