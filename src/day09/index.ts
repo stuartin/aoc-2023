@@ -25,7 +25,7 @@ function _getNextLine(line: number[]): number[] {
 
 const part1 = (rawInput: string) => {
   const input = parseInput(rawInput);
-  console.log(input);
+  // console.log(input);
 
   // 0 = [[line0-0],[line0-1],[line-02]] etc.
   const lineOfLines = input.map((line) => {
@@ -44,7 +44,7 @@ const part1 = (rawInput: string) => {
     return lineResults;
   });
 
-  console.log(lineOfLines);
+  // console.log(lineOfLines);
 
   const linesNextNumber = lineOfLines.map((subLines) => {
     let subLineNextNumber = 0;
@@ -64,7 +64,7 @@ const part1 = (rawInput: string) => {
     return subLineNextNumber;
   });
 
-  console.log({ linesNextNumber });
+  // console.log({ linesNextNumber });
   const total = linesNextNumber.reduce((total, i) => (total += i));
 
   return total;
@@ -72,7 +72,49 @@ const part1 = (rawInput: string) => {
 
 const part2 = (rawInput: string) => {
   const input = parseInput(rawInput);
+  console.log(input);
 
+  // 0 = [[line0-0],[line0-1],[line-02]] etc.
+  const lineOfLines = input.map((line) => {
+    // console.log("line", line);
+    let lineResults = [];
+    lineResults.push(line);
+
+    let nextLine: number[] = line;
+    while (!nextLine.every((i) => i === 0)) {
+      nextLine = _getNextLine(nextLine);
+      // console.log("nextLine", nextLine);
+      lineResults.push(nextLine);
+    }
+
+    // console.log("lineResults", lineResults);
+    return lineResults;
+  });
+
+  // console.log(lineOfLines);
+
+  const linesNextNumber = lineOfLines.map((subLines) => {
+    let subLineNextNumber = 0;
+    let lastSubLineIdx = subLines.length - 1;
+    while (true) {
+      // console.log({ subLines, lastSubLineIdx });
+      const currLine = subLines[lastSubLineIdx - 1];
+      const prevLine = subLines[lastSubLineIdx];
+      if (!currLine) break;
+
+      subLineNextNumber = currLine[0] - subLineNextNumber;
+      // console.log("nextNumber", subLineNextNumber);
+      lastSubLineIdx -= 1;
+    }
+
+    // console.log("lineNextNumber", subLineNextNumber);
+    return subLineNextNumber;
+  });
+
+  // console.log({ linesNextNumber });
+  const total = linesNextNumber.reduce((total, i) => (total += i));
+
+  return total;
   return;
 };
 
