@@ -1,21 +1,21 @@
 import run from "aocrunner";
 
 const parseInput = (rawInput: string) => {
-  rawInput = `#.##..##.
-  ..#.##.#.
-  ##......#
-  ##......#
-  ..#.##.#.
-  ..##..##.
-  #.#.##.#.
-  
-  #...##..#
-  #....#..#
-  ..##..###
-  #####.##.
-  #####.##.
-  ..##..###
-  #....#..#`;
+  // rawInput = `#.##..##.
+  // ..#.##.#.
+  // ##......#
+  // ##......#
+  // ..#.##.#.
+  // ..##..##.
+  // #.#.##.#.
+
+  // #...##..#
+  // #....#..#
+  // ..##..###
+  // #####.##.
+  // #####.##.
+  // ..##..###
+  // #....#..#`;
 
   console.log("start");
 
@@ -131,15 +131,39 @@ function getColPairs(pattern: PatternItem[][]) {
 const part1 = (rawInput: string) => {
   const patterns = parseInput(rawInput);
 
+  let totalColsToLeft = 0;
+  let totalRowsAbove = 0;
   patterns.forEach((pattern, i) => {
     console.log("pattern", i);
     const rowPairs = getRowPairs(pattern);
     const colPairs = getColPairs(pattern);
 
-    console.log(JSON.stringify({ rowPairs, colPairs }));
+    const validRowPairs = (pattern.length - 1) / 2;
+    const validColPairs = (pattern[0].length - 1) / 2;
+    console.log({ validRowPairs, validColPairs });
+
+    if (rowPairs.length === validRowPairs) {
+      // must be a matching row
+      const rowPairIdxs = rowPairs.flat().map((rp) => rp.rowIdx);
+      const rowsAbove = Math.max(...rowPairIdxs) / 2 + 1;
+      console.log("rowsAbove", rowsAbove);
+      totalRowsAbove += rowsAbove * 100;
+    }
+
+    if (colPairs.length === validColPairs) {
+      /// must be a matching col
+      const colPairIdxs = colPairs.flat().map((cp) => cp.colIdx);
+      const colsToLeft = Math.max(...colPairIdxs) / 2 + 1;
+      console.log("colsToLeft", colsToLeft);
+      totalColsToLeft += colsToLeft;
+    }
+
+    // console.log(JSON.stringify({ rowPairs, colPairs }));
   });
 
-  return;
+  console.log({ totalColsToLeft, totalRowsAbove });
+
+  return totalColsToLeft + totalRowsAbove;
 };
 
 const part2 = (rawInput: string) => {
